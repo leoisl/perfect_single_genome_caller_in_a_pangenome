@@ -1,0 +1,7 @@
+input_folder: assemblies_sample
+output_folder: pipeline_output
+probe_length: 100
+mem_mb:
+  - 1000
+  - 5000
+  - 10000
