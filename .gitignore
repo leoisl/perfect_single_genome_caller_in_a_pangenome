@@ -1,0 +1,8 @@
+.snakemake
+*.pyc
+
+logs/
+
+pipeline_output/
+
+log

@@ -21,16 +21,53 @@ rule run_show_snps:
     output:
         snp_probes = Path(config["output_folder"]) / "{genome_1}.{genome_2}.show_snps"
     params:
-        probe_length = config["probe_length"] #TODO: make this as part of the input
+        probe_length = config["probe_length"] #TODO: vary several probe lengths?
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
     log:
         "logs/{genome_1}_{genome_2}_run_show_snps.log"
     shell:
-        "show-snps -C -H -I -r -T -x 10 {input} > {output} 2> log"
+        "show-snps -C -H -I -r -T -x {params.probe_length} {input} > {output} 2> log"
+        #output file header: [P1]    [SUB]   [SUB]   [P2]    [BUFF]  [DIST]  [CTX R] [CTX Q] [FRM]   [TAGS]
 
-#header: [P1]    [SUB]   [SUB]   [P2]    [BUFF]  [DIST]  [CTX R] [CTX Q] [FRM]   [TAGS]
 
 
-rule concatenate
+rule transform_SNPs_into_canonical_SNPs:
+    input:
+        snp_probes = Path(config["output_folder"]) / "{genome_1}.{genome_2}.show_snps"
+    output:
+        canonical_snps = Path(config["output_folder"]) / "{genome_1}.{genome_2}.canonical_snps"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    log:
+        "logs/{genome_1}_{genome_2}_transform_SNPs_into_canonical_SNPs.log"
+    shell:
+        "python scripts/transform_snps_into_canonical.py < {input} > {output} 2> log"
+
+rule get_unique_canonical_SNPs:
+    input:
+        all_canonical_snps = expand( str(Path(config["output_folder"]) / "{genomes_1}.{genomes_2}.canonical_snps"), genomes_1=genomes_names, genomes_2=genomes_names)
+    output:
+        all_unique_canonical_snps = Path(config["output_folder"]) / "all_unique_canonical_snps"
+    threads: 16 #TODO: check this with Michael - maybe it is fine? - check dryrun
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    log:
+        "logs/get_unique_canonical_SNPs.log"
+    shell:
+        "sort {input} --parallel={threads} | uniq > {output} 2> log"
+
+rule get_number_unique_canonical_SNPs:
+    input:
+        all_unique_canonical_snps = Path(config["output_folder"]) / "all_unique_canonical_snps"
+    output:
+        nb_all_unique_canonical_snps = Path(config["output_folder"]) / "nb_all_unique_canonical_snps"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    log:
+        "logs/get_number_unique_canonical_SNPs.log"
+    shell:
+        "wc -l {input} | awk '{{print $1}}' > {output} 2> log"
