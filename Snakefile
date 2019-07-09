@@ -11,6 +11,7 @@ configfile: "config.yaml"
 # ======================================================
 genomes = get_all_genomes_files(config["input_folder"])
 genomes_names = get_all_genomes_names(genomes)
+SEPARATOR = "-SEP-"
 
 #all_final_files = get_all_final_files(genomes, config["output_folder"])
 all_final_files = Path(config["output_folder"]) / "nb_all_unique_canonical_snps"

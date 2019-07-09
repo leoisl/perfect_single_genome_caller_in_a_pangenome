@@ -5,10 +5,12 @@ rule run_dnadiff:
     params:
         output_prefix = lambda wildcards, output: Path(output.delta_file).with_suffix('')
     output:
-        delta_file = Path(config["output_folder"]) / "{genome_1}.{genome_2}.delta"
+        delta_file = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.delta"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    conda:
+        "../envs/global.yaml"
     log:
         "logs/{genome_1}_{genome_2}_run_dnadiff.log"
     shell:
@@ -17,14 +19,16 @@ rule run_dnadiff:
 
 rule run_show_snps:
     input:
-        delta_file = Path(config["output_folder"]) / "{genome_1}.{genome_2}.delta"
+        delta_file = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.delta"
     output:
-        snp_probes = Path(config["output_folder"]) / "{genome_1}.{genome_2}.show_snps"
+        snp_probes = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.show_snps"
     params:
         probe_length = config["probe_length"] #TODO: vary several probe lengths?
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    conda:
+        "../envs/global.yaml"
     log:
         "logs/{genome_1}_{genome_2}_run_show_snps.log"
     shell:
@@ -35,12 +39,14 @@ rule run_show_snps:
 
 rule transform_SNPs_into_canonical_SNPs:
     input:
-        snp_probes = Path(config["output_folder"]) / "{genome_1}.{genome_2}.show_snps"
+        snp_probes = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.show_snps"
     output:
-        canonical_snps = Path(config["output_folder"]) / "{genome_1}.{genome_2}.canonical_snps"
+        canonical_snps = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.canonical_snps"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    conda:
+        "../envs/global.yaml"
     log:
         "logs/{genome_1}_{genome_2}_transform_SNPs_into_canonical_SNPs.log"
     shell:
@@ -48,12 +54,14 @@ rule transform_SNPs_into_canonical_SNPs:
 
 rule get_unique_canonical_SNPs:
     input:
-        all_canonical_snps = expand( str(Path(config["output_folder"]) / "{genomes_1}.{genomes_2}.canonical_snps"), genomes_1=genomes_names, genomes_2=genomes_names)
+        all_canonical_snps = expand( str(Path(config["output_folder"]) / f"{{genomes_1}}{SEPARATOR}{{genomes_2}}.canonical_snps"), genomes_1=genomes_names, genomes_2=genomes_names)
     output:
         all_unique_canonical_snps = Path(config["output_folder"]) / "all_unique_canonical_snps"
-    threads: 16 #TODO: check this with Michael - maybe it is fine? - check dryrun
+    threads: 16
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    conda:
+        "../envs/global.yaml"
     log:
         "logs/get_unique_canonical_SNPs.log"
     shell:
@@ -67,6 +75,8 @@ rule get_number_unique_canonical_SNPs:
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    conda:
+        "../envs/global.yaml"
     log:
         "logs/get_number_unique_canonical_SNPs.log"
     shell:
