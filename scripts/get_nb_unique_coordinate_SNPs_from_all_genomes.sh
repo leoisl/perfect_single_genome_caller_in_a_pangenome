@@ -1,0 +1,1 @@
+wc -l "$@" | awk '{if($2 != "total"){print $2, $1}}' | sed 's/.all_coordinate_SNPs_from_a_genome//g'

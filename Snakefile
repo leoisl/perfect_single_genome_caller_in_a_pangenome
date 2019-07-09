@@ -11,13 +11,11 @@ configfile: "config.yaml"
 # ======================================================
 genomes = get_all_genomes_files(config["input_folder"])
 genomes_names = get_all_genomes_names(genomes)
-SEPARATOR = "-SEP-"
-
-#all_final_files = get_all_final_files(genomes, config["output_folder"])
-all_final_files = Path(config["output_folder"]) / "nb_all_unique_canonical_snps"
 
 rule all:
-    input: all_final_files
+    input: Path(config["output_folder"]) / "perfect_caller_sensitivity_in_pangenome.pdf"
 
 rules_dir = Path("rules/")
 include: str(rules_dir / "count_nb_SNPs_in_pangenome.smk")
+include: str(rules_dir / "compute_percentage_SNPs_from_a_single_reference.smk")
+include: str(rules_dir / "generate_plot.smk")
