@@ -3,7 +3,7 @@ from pathlib import Path
 SEPARATOR = "-SEP-"
 
 def get_all_genomes_files(input_folder):
-    return list(Path().rglob("*.fna"))
+    return list(Path(input_folder).glob("*.fna"))
 
 def get_all_genomes_names(genomes):
     return [genome.with_suffix("").name for genome in genomes]
