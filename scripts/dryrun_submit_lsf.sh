@@ -4,16 +4,11 @@ JOB_NAME=snakemake_master_process
 LOG_DIR=logs/
 MEMORY=4000
 
-bsub -R "select[mem>$MEMORY] rusage[mem=$MEMORY]" \
-    -M "$MEMORY" \
-    -o "$LOG_DIR"/cluster_"$JOB_NAME".o \
-    -e "$LOG_DIR"/cluster_"$JOB_NAME".e \
-    -J "$JOB_NAME" \
     snakemake --use-conda \
     --cluster-config cluster.yaml \
     --jobs 2000 \
     --restart-times 3 \
     --cluster "${CLUSTER_CMD[@]}" \
-    -p
+    -p -n
 
 exit 0
