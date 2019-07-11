@@ -4,3 +4,4 @@ logs/
 pipeline_output/
 log
 .idea
+get_proportion_unique_kmers_in_a_genome/dsk/
