@@ -1,83 +1,145 @@
 rule run_dnadiff:
     input:
-        genome_1_path = Path(config["input_folder"]) / "{genome_1}.fna",
-        genome_2_path = Path(config["input_folder"]) / "{genome_2}.fna"
-    params:
-        output_prefix = lambda wildcards, output: Path(output.delta_file).with_suffix('')
+        ref_genome = Path(config["input_folder"]) / "{genome_1}.fna",
+        all_other_genomes = expand( str(Path(config["input_folder"]) / "{genomes_2}.fna"), genomes_2 = genomes_names)
     output:
-        delta_file = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.delta"
+        all_delta_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_delta_files_done"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-    conda:
-        "../envs/global.yaml"
     log:
-        "logs/{genome_1}_{genome_2}_run_dnadiff.log"
-    shell:
-        "dnadiff {input} -p {params.output_prefix} 2> {log}"
-
+        "logs/{genome_1}_run_dnadiff.log"
+    run:
+        for genome_path, genome_name in zip(genomes, genomes_names):
+            prefix = f"{Path(config['output_folder']) / wildcards.genome_1}{SEPARATOR}{genome_name}"
+            shell(f"dnadiff {input.ref_genome} {genome_path} -p {prefix} ")
+        with open(output.all_delta_files_done_flag_file, "w") as fout: pass
 
 rule run_show_snps:
     input:
-        delta_file = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.delta"
+        all_delta_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_delta_files_done"
     output:
-        snp_probes = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.show_snps"
+        all_snp_probes_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_snp_probes_files_done"
     params:
         probe_length = config["probe_length"] #TODO: vary several probe lengths?
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-    conda:
-        "../envs/global.yaml"
     log:
-        "logs/{genome_1}_{genome_2}_run_show_snps.log"
-    shell:
-        "show-snps -C -H -I -r -T -x {params.probe_length} {input} > {output} 2> log"
+        "logs/{genome_1}_run_show_snps.log"
+    run:
         #output file header: [P1]    [SUB]   [SUB]   [P2]    [BUFF]  [DIST]  [CTX R] [CTX Q] [FRM]   [TAGS]
+        for genome_path, genome_name in zip(genomes, genomes_names):
+            prefix = f"{Path(config['output_folder']) / wildcards.genome_1}{SEPARATOR}{genome_name}"
+            delta_file = f"{prefix}.delta"
+            show_snps_file = f"{prefix}.show_snps"
+            shell(f"show-snps -C -H -I -r -T -x {params.probe_length} {delta_file} > {show_snps_file}")
+        with open(output.all_snp_probes_files_done_flag_file, "w") as fout: pass
 
 
-
+#this is done so that SNPs that are the same are not represented duplicatedly
 rule transform_SNPs_into_canonical_SNPs:
     input:
-        snp_probes = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.show_snps"
+        all_snp_probes_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_snp_probes_files_done"
     output:
-        canonical_snps = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.canonical_snps"
+        all_canonical_snps_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_canonical_snps_files_done"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-    conda:
-        "../envs/global.yaml"
     log:
-        "logs/{genome_1}_{genome_2}_transform_SNPs_into_canonical_SNPs.log"
-    shell:
-        "python scripts/transform_snps_into_canonical.py < {input} > {output} 2> log"
+        "logs/{genome_1}_transform_SNPs_into_canonical_SNPs.log"
+    run:
+        #output file header: [P1]    [SUB]   [SUB]   [P2]    [BUFF]  [DIST]  [CTX R] [CTX Q] [FRM]   [TAGS]
+        for genome_path, genome_name in zip(genomes, genomes_names):
+            prefix = f"{Path(config['output_folder']) / wildcards.genome_1}{SEPARATOR}{genome_name}"
+            show_snps_file = f"{prefix}.show_snps"
+            canonical_snps_file = f"{prefix}.canonical_snps"
+            shell(f"python scripts/transform_snps_into_canonical.py < {show_snps_file} > {canonical_snps_file}")
+        with open(output.all_canonical_snps_files_done_flag_file, "w") as fout: pass
 
-rule get_unique_canonical_SNPs:
+
+rule get_unique_canonical_SNPs_from_the_pangenome:
     input:
-        all_canonical_snps = expand( str(Path(config["output_folder"]) / f"{{genomes_1}}{SEPARATOR}{{genomes_2}}.canonical_snps"), genomes_1=genomes_names, genomes_2=genomes_names)
+        all_canonical_snps_files_done_flag_file = expand( str(Path(config["output_folder"]) / f"{{genomes_1}}.all_canonical_snps_files_done"),genomes_1=genomes_names)
     output:
         all_unique_canonical_snps = Path(config["output_folder"]) / "all_unique_canonical_snps"
+    params:
+        all_canonical_snps = expand( str(Path(config["output_folder"]) / f"{{genomes_1}}{SEPARATOR}{{genomes_2}}.canonical_snps"), genomes_1=genomes_names, genomes_2=genomes_names)
     threads: 16
     resources:
-        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-    conda:
-        "../envs/global.yaml"
+        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
     log:
         "logs/get_unique_canonical_SNPs.log"
     shell:
-        "sort {input} --parallel={threads} | uniq > {output} 2> log"
+        "sort {params.all_canonical_snps} --parallel={threads} | uniq > {output} 2> log"
 
-rule get_number_unique_canonical_SNPs:
+#transforms all_unique_canonical_snps in a SNP panel fasta file
+rule build_SNP_panel_fasta_file:
     input:
         all_unique_canonical_snps = Path(config["output_folder"]) / "all_unique_canonical_snps"
     output:
-        nb_all_unique_canonical_snps = Path(config["output_folder"]) / "nb_all_unique_canonical_snps"
+        SNP_panel_fasta_file = Path(config["output_folder"]) / "SNP_panel.fa"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-    conda:
-        "../envs/global.yaml"
     log:
-        "logs/get_number_unique_canonical_SNPs.log"
+        "logs/build_SNP_panel_fasta_file.log"
+    run:
+        index = 0
+        with open(input.all_unique_canonical_snps) as all_unique_canonical_snps_file, \
+             open(output.SNP_panel_fasta_file, "w") as SNP_panel_fasta_file:
+            for line in all_unique_canonical_snps_file:
+                first_allele, second_allele = line.strip().split("$")
+                print(f">SNP_{index}_allele_1\n{first_allele}", file=SNP_panel_fasta_file)
+                print(f">SNP_{index}_allele_2\n{second_allele}", file=SNP_panel_fasta_file)
+                index+=1
+
+#run bwa mem to get the unrefined clusters
+rule get_unrefined_clusters_using_bwa_mem:
+    input:
+        SNP_panel_fasta_file = Path(config["output_folder"]) / "SNP_panel.fa"
+    output:
+        unrefined_clusters = Path(config["output_folder"]) / "unrefined_clusters"
+    params:
+        minimum_score_to_output = int((float(config["probe_length"])*2+1) * float(config["proportion_of_match_in_probes_to_say_SNPs_are_the_same"])),
+        bwa_mem_output = Path(config["output_folder"]) / "bwa_mem_output.sam"
+    threads: 16
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
+    log:
+        "logs/get_unrefined_clusters_using_bwa_mem.log"
     shell:
-        "wc -l {input} | awk '{{print $1}}' > {output} 2> log"
+        """
+        bwa index {input} &&
+        bwa mem -t {threads} -A 1 -B 0 -O [0,0] -E [0,0] -L[0,0] -U 0 -T {params.minimum_score_to_output} -a -o {params.bwa_mem_output} {input} {input} &&
+        grep -v '^@' {params.bwa_mem_output} | awk '{{print $1, $3}}' | awk -F '_' '{{print $2, $5}}' | sort | uniq > {output}
+        """
+
+# refine clusters:
+#   * bwa mem give us some clues of the clusters;
+#   * given two SNPs that bwa mem told us that are similar, we have to ensure that they are indeed similar;
+#   * we do this by aligning them (each path of each SNP should align to one path) and ensure the middle bases are the same;
+
+# we represent the SNPs and their relationships as an undirected graph:
+#   * SNPs are nodes in the graph;
+#   * we have an edge between two SNPs if they are similar enough;
+#   * we get the connected components of this graph (each connected component is a SNP cluster);
+#   * the representative SNP of each SNP cluster is a node with highest degree;
+
+# the SNP refined panel are the representative SNPs
+rule refine_clusters_and_output_SNP_refined_panel:
+    input:
+        unrefined_clusters = Path(config["output_folder"]) / "unrefined_clusters"
+    output:
+        SNP_refined_panel = Path(config["output_folder"]) / "SNP_refined_panel.fa"
+    params:
+        SNP_panel = Path(config["output_folder"]) / "SNP_panel.fa"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
+    log:
+        "logs/refine_clusters_and_output_SNP_refined_panel.log"
+    shell:
+         "python scripts/refine_clusters_and_output_a_representative.py {input} {params.SNP_panel} > {output}"
+
+

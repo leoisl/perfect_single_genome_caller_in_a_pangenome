@@ -1,7 +1,12 @@
 input_folder: assemblies_sample
 output_folder: pipeline_output
-probe_length: 31
+probe_length: 51
+proportion_of_match_in_probes_to_say_SNPs_are_the_same: 0.9
 mem_mb:
   - 1000
   - 5000
   - 10000
+mem_mb_heavy_jobs:
+  - 10000
+  - 25000
+  - 50000
