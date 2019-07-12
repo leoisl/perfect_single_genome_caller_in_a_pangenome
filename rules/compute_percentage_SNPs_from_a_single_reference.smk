@@ -38,12 +38,17 @@ rule build_SNP_panel_fasta_file_for_a_single_genome:
 
 
 
-#run bwa mem to get the number of SNPs mapping to the SNP_refined_panel.fa
-rule get_unrefined_clusters_using_bwa_mem:
+#run bwa mem to get which SNPs fraom SNP_refined_panel.fa we can find with this genome
+rule get_SNPs_mapping_to_SNP_refined_panel:
     input:
-        SNP_panel_fasta_file = Path(config["output_folder"]) / "SNP_panel.fa"
+        SNP_panel_fasta_file_for_a_single_genome = Path(config["output_folder"]) / "{genome_1}.SNP_panel.fa",
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.amb",
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.ann",
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.bwt",
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.pac",
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.sa"
     output:
-        unrefined_clusters = Path(config["output_folder"]) / "unrefined_clusters"
+        SNPs_found_in_the_pangenome_if_ref_is_this_genome = Path(config["output_folder"]) / "SNPs_found_in_the_pangenome_if_ref_is_{genome_1}",
     params:
         minimum_score_to_output = int((float(config["probe_length"])*2+1) * float(config["proportion_of_match_in_probes_to_say_SNPs_are_the_same"])),
         bwa_mem_output = Path(config["output_folder"]) / "bwa_mem_output.sam"

@@ -102,7 +102,6 @@ rule get_unrefined_clusters_using_bwa_mem:
         unrefined_clusters = Path(config["output_folder"]) / "unrefined_clusters"
     params:
         minimum_score_to_output = int((float(config["probe_length"])*2+1) * float(config["proportion_of_match_in_probes_to_say_SNPs_are_the_same"])),
-        bwa_mem_output = Path(config["output_folder"]) / "bwa_mem_output.sam"
     threads: 16
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
@@ -111,8 +110,8 @@ rule get_unrefined_clusters_using_bwa_mem:
     shell:
         """
         bwa index {input} &&
-        bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} -a -o {params.bwa_mem_output} {input} {input} &&
-        grep -v '^@' {params.bwa_mem_output} | awk '{{print $1, $3}}' | awk -F '_' '{{print $2, $5}}' | sort | uniq > {output}
+        bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} -a {input} {input} |
+        grep -v '^@' | awk '{{print $1, $3}}' | awk -F '_' '{{print $2, $5}}' | sort | uniq > {output}
         """
 
 # refine clusters:
