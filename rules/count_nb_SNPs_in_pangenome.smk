@@ -50,7 +50,7 @@ rule transform_SNPs_into_canonical_SNPs:
         all_canonical_snps_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_canonical_snps_files_done"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
     log:
         "logs/{genome_1}_transform_SNPs_into_canonical_SNPs.log"
     run:
