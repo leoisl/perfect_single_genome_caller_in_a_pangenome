@@ -1,3 +1,5 @@
+import os
+
 rule run_dnadiff:
     input:
         ref_genome = Path(config["input_folder"]) / "{genome_1}.fna",
@@ -11,7 +13,9 @@ rule run_dnadiff:
         "logs/{genome_1}_run_dnadiff.log"
     run:
         for genome_path, genome_name in zip(genomes, genomes_names):
-            prefix = f"{Path(config['output_folder']) / wildcards.genome_1}{SEPARATOR}{genome_name}"
+            out_dir = Path(config['output_folder']) / wildcards.genome_1
+            os.makedirs(out_dir, exist_ok=True)
+            prefix = f"{out_dir / wildcards.genome_1}{SEPARATOR}{genome_name}"
             shell(f"dnadiff {input.ref_genome} {genome_path} -p {prefix} ")
         with open(output.all_delta_files_done_flag_file, "w") as fout: pass
 
@@ -30,7 +34,8 @@ rule run_show_snps:
     run:
         #output file header: [P1]    [SUB]   [SUB]   [P2]    [BUFF]  [DIST]  [CTX R] [CTX Q] [FRM]   [TAGS]
         for genome_path, genome_name in zip(genomes, genomes_names):
-            prefix = f"{Path(config['output_folder']) / wildcards.genome_1}{SEPARATOR}{genome_name}"
+            out_dir = Path(config['output_folder']) / wildcards.genome_1
+            prefix = f"{out_dir / wildcards.genome_1}{SEPARATOR}{genome_name}"
             delta_file = f"{prefix}.delta"
             show_snps_file = f"{prefix}.show_snps"
             shell(f"show-snps -C -H -I -r -T -x {params.probe_length} {delta_file} > {show_snps_file}")
@@ -51,7 +56,8 @@ rule transform_SNPs_into_canonical_SNPs:
     run:
         #output file header: [P1]    [SUB]   [SUB]   [P2]    [BUFF]  [DIST]  [CTX R] [CTX Q] [FRM]   [TAGS]
         for genome_path, genome_name in zip(genomes, genomes_names):
-            prefix = f"{Path(config['output_folder']) / wildcards.genome_1}{SEPARATOR}{genome_name}"
+            out_dir = Path(config['output_folder']) / wildcards.genome_1
+            prefix = f"{out_dir / wildcards.genome_1}{SEPARATOR}{genome_name}"
             show_snps_file = f"{prefix}.show_snps"
             canonical_snps_file = f"{prefix}.canonical_snps"
             shell(f"python scripts/transform_snps_into_canonical.py < {show_snps_file} > {canonical_snps_file}")
@@ -64,7 +70,7 @@ rule get_unique_canonical_SNPs_from_the_pangenome:
     output:
         all_unique_canonical_snps = Path(config["output_folder"]) / "all_unique_canonical_snps"
     params:
-        all_canonical_snps = expand( str(Path(config["output_folder"]) / f"{{genomes_1}}{SEPARATOR}{{genomes_2}}.canonical_snps"), genomes_1=genomes_names, genomes_2=genomes_names)
+        all_canonical_snps = expand( str(Path(config["output_folder"]) / f"{{genomes_1}}/{{genomes_1}}{SEPARATOR}{{genomes_2}}.canonical_snps"), genomes_1=genomes_names, genomes_2=genomes_names)
     threads: 16
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
