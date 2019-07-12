@@ -111,7 +111,7 @@ rule get_unrefined_clusters_using_bwa_mem:
     shell:
         """
         bwa index {input} &&
-        bwa mem -t {threads} -A 1 -B 0 -O [0,0] -E [0,0] -L[0,0] -U 0 -T {params.minimum_score_to_output} -a -o {params.bwa_mem_output} {input} {input} &&
+        bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} -a -o {params.bwa_mem_output} {input} {input} &&
         grep -v '^@' {params.bwa_mem_output} | awk '{{print $1, $3}}' | awk -F '_' '{{print $2, $5}}' | sort | uniq > {output}
         """
 
@@ -141,6 +141,23 @@ rule refine_clusters_and_output_SNP_refined_panel:
         "logs/refine_clusters_and_output_SNP_refined_panel.log"
     shell:
          "python scripts/refine_clusters_and_output_a_representative.py {input} {params.SNP_panel} > {output}"
+
+rule index_refined_panel:
+    input:
+        SNP_refined_panel = Path(config["output_folder"]) / "SNP_refined_panel.fa"
+    output:
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.amb",
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.ann",
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.bwt",
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.pac",
+        Path(config["output_folder"]) / "SNP_refined_panel.fa.sa"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
+    log:
+        "logs/index_refined_panel.log"
+    shell:
+         "bwa index {input}"
 
 
 rule count_nb_SNPs_in_pangenome:

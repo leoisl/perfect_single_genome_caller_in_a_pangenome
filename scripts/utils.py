@@ -35,6 +35,14 @@ def get_rule_refine_clusters_and_output_SNP_refined_panel_final_files(output_fol
 def get_rule_count_nb_SNPs_in_pangenome_final_files(output_folder):
     return Path(output_folder) / "nb_SNPs_in_pangenome"
 
+def get_rule_get_unique_canonical_SNPs_for_a_single_genome_final_files(output_folder):
+    nb_of_genomes = 4
+    return [f"{output_folder}/genome.{i}.all_unique_canonical_snps" for i in range(nb_of_genomes)]
+
+def get_rule_build_SNP_panel_fasta_file_for_a_single_genome_final_files(output_folder):
+    nb_of_genomes = 4
+    return [f"{output_folder}/genome.{i}.SNP_panel.fa" for i in range(nb_of_genomes)]
+
 def get_all_unique_coordinate_SNPs_from_a_genome_final_files(output_folder):
     nb_of_genomes = 4
     return [f"{output_folder}/genome.{i}.all_coordinate_SNPs_from_a_genome" for i in range(nb_of_genomes)]
