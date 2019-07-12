@@ -143,3 +143,15 @@ rule refine_clusters_and_output_SNP_refined_panel:
          "python scripts/refine_clusters_and_output_a_representative.py {input} {params.SNP_panel} > {output}"
 
 
+rule count_nb_SNPs_in_pangenome:
+    input:
+        SNP_refined_panel = Path(config["output_folder"]) / "SNP_refined_panel.fa"
+    output:
+        nb_SNPs_in_pangenome = Path(config["output_folder"]) / "nb_SNPs_in_pangenome",
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    log:
+        "logs/count_nb_SNPs_in_pangenome.log"
+    shell:
+         " grep '>' {input} | echo $((`wc -l`/2)) > {output}"

@@ -32,6 +32,9 @@ def get_rule_get_unrefined_clusters_using_bwa_mem_final_files(output_folder):
 def get_rule_refine_clusters_and_output_SNP_refined_panel_final_files(output_folder):
     return Path(output_folder) / "SNP_refined_panel.fa"
 
+def get_rule_count_nb_SNPs_in_pangenome_final_files(output_folder):
+    return Path(output_folder) / "nb_SNPs_in_pangenome"
+
 def get_all_unique_coordinate_SNPs_from_a_genome_final_files(output_folder):
     nb_of_genomes = 4
     return [f"{output_folder}/genome.{i}.all_coordinate_SNPs_from_a_genome" for i in range(nb_of_genomes)]

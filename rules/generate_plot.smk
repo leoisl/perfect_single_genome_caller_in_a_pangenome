@@ -1,6 +1,6 @@
 rule generate_plot:
     input:
-        nb_all_unique_canonical_snps = Path(config["output_folder"]) / "nb_all_unique_canonical_snps",
+        nb_SNPs_in_pangenome = Path(config["output_folder"]) / "nb_SNPs_in_pangenome",
         nb_coordinate_SNPs_from_all_genomes = Path(config["output_folder"]) / "nb_coordinate_SNPs_from_all_genomes"
     output:
         plot = Path(config["output_folder"]) / "perfect_caller_sensitivity_in_pangenome.pdf"

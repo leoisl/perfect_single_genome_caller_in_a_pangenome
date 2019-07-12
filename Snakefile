@@ -14,7 +14,7 @@ genomes_names = get_all_genomes_names(genomes)
 
 rule all:
     #input: Path(config["output_folder"]) / "perfect_caller_sensitivity_in_pangenome.pdf"
-    input: get_rule_refine_clusters_and_output_SNP_refined_panel_final_files(config["output_folder"])
+    input: get_rule_count_nb_SNPs_in_pangenome_final_files(config["output_folder"])
 
 rules_dir = Path("rules/")
 include: str(rules_dir / "count_nb_SNPs_in_pangenome.smk")
