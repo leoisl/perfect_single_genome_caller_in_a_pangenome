@@ -1,8 +1,8 @@
 import sys
+from Bio.Seq import Seq
+
 def rev_comp(s):
-    return "".join(
-        [{"A": "T", "C": "G", "G": "C", "T": "A"}[c] for c in s][::-1]
-    )
+    return str(Seq(s).reverse_complement())
 
 def canonical_snp(snp_1, snp_2):
     snp_1_RC = rev_comp(snp_1)
