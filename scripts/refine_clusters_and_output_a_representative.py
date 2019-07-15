@@ -61,6 +61,8 @@ unrefined_clusters = {}
 with open(sys.argv[1]) as unrefined_clusters_file:
     for line in unrefined_clusters_file:
         line_split = line.strip().split()
+        if (len(line_split) < 2): continue
+
         cluster_1, cluster_2 = all_SNPs[int(line_split[0])], all_SNPs[int(line_split[1])]
 
         if cluster_1 not in unrefined_clusters:
