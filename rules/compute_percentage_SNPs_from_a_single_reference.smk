@@ -1,19 +1,3 @@
-rule get_unique_canonical_SNPs_for_a_single_genome:
-    input:
-        all_canonical_snps_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_canonical_snps_files_done"
-    output:
-        all_unique_canonical_snps_for_a_single_genome = Path(config["output_folder"]) / "{genome_1}.all_unique_canonical_snps"
-    params:
-        all_canonical_snps = lambda wildcard: expand( str(Path(config["output_folder"]) / f"{wildcard.genome_1}{SEPARATOR}{{genomes_2}}.canonical_snps"), genomes_2=genomes_names)
-    threads: 16
-    resources:
-        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
-    log:
-        "logs/{genome_1}_get_unique_canonical_SNPs_for_a_single_genome.log"
-    shell:
-        "sort {params.all_canonical_snps} --parallel={threads} | uniq > {output} 2> log"
-
-
 #transforms all_unique_canonical_snps_for_a_single_genome in a SNP panel fasta file
 rule build_SNP_panel_fasta_file_for_a_single_genome:
     input:

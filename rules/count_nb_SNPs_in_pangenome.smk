@@ -64,24 +64,35 @@ rule transform_SNPs_into_canonical_SNPs:
         with open(output.all_canonical_snps_files_done_flag_file, "w") as fout: pass
 
 
+rule get_unique_canonical_SNPs_for_a_single_genome:
+    input:
+        all_canonical_snps_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_canonical_snps_files_done"
+    output:
+        all_unique_canonical_snps_for_a_single_genome = Path(config["output_folder"]) / "{genome_1}.all_unique_canonical_snps"
+    params:
+        all_canonical_snps = lambda wildcard: expand( str(Path(config["output_folder"]) / f"{wildcard.genome_1}/{wildcard.genome_1}{SEPARATOR}{{genomes_2}}.canonical_snps"), genomes_2=genomes_names)
+    threads: 16
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
+    log:
+        "logs/{genome_1}_get_unique_canonical_SNPs_for_a_single_genome.log"
+    shell:
+        "sort {params.all_canonical_snps} --parallel={threads} | uniq > {output} 2> log"
+
+
+
 rule get_unique_canonical_SNPs_from_the_pangenome:
     input:
-        all_canonical_snps_files_done_flag_file = expand( str(Path(config["output_folder"]) / f"{{genomes_1}}.all_canonical_snps_files_done"),genomes_1=genomes_names)
+         all_unique_canonical_snps_for_a_single_genome = expand( str(Path(config["output_folder"]) / "{genomes_1}.all_unique_canonical_snps"), genomes_1=genomes_names)
     output:
         all_unique_canonical_snps = Path(config["output_folder"]) / "all_unique_canonical_snps"
-    params:
-        files_to_be_sorted = Path(config["output_folder"]) / "all_unique_canonical_snps.files_to_be_sorted",
-        all_canonical_snps = expand( str(Path(config["output_folder"]) / f"{{genomes_1}}/{{genomes_1}}{SEPARATOR}{{genomes_2}}.canonical_snps"), genomes_1=genomes_names, genomes_2=genomes_names)
     threads: 16
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
     log:
         "logs/get_unique_canonical_SNPs.log"
-    run:
-        with open(params.files_to_be_sorted, "w") as files_to_be_sorted_file:
-             files_to_be_sorted_file.write("\0".join(params.all_canonical_snps))
-        shell("sort --parallel={threads} --files0-from={params.files_to_be_sorted} | "
-              "uniq > {output} 2> log")
+    shell:
+        "sort {input} --parallel={threads} | uniq > {output} 2> log"
 
 #transforms all_unique_canonical_snps in a SNP panel fasta file
 rule build_SNP_panel_fasta_file:
