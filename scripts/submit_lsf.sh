@@ -9,7 +9,7 @@ bsub -R "select[mem>$MEMORY] rusage[mem=$MEMORY]" \
     -o "$LOG_DIR"/cluster_"$JOB_NAME".o \
     -e "$LOG_DIR"/cluster_"$JOB_NAME".e \
     -J "$JOB_NAME" \
-    snakemake --use-conda \
+    snakemake \
     --cluster-config cluster.yaml \
     --jobs 2000 \
     --restart-times 3 \

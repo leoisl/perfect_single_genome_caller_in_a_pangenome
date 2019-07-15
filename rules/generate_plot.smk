@@ -9,8 +9,6 @@ rule generate_plot:
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-    conda:
-        "../envs/global.yaml"
     log:
         "logs/generate_plot.log"
     shell:

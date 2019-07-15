@@ -4,7 +4,7 @@ JOB_NAME=snakemake_master_process
 LOG_DIR=logs/
 MEMORY=4000
 
-    snakemake --use-conda \
+    snakemake \
     --cluster-config cluster.yaml \
     --jobs 2000 \
     --restart-times 3 \

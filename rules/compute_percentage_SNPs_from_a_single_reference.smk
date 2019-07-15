@@ -83,8 +83,6 @@ rule get_SNPs_mapping_to_SNP_refined_panel:
 #     threads: 1
 #     resources:
 #         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-#     conda:
-#         "../envs/global.yaml"
 #     log:
 #         "logs/{genome_1}_{genome_2}transform_SNPs_into_coordinate_SNPs.log"
 #     shell:
@@ -99,8 +97,6 @@ rule get_SNPs_mapping_to_SNP_refined_panel:
 #     threads: 16
 #     resources:
 #         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-#     conda:
-#         "../envs/global.yaml"
 #     log:
 #         "logs/{genome_1}_get_all_unique_coordinate_SNPs_from_a_genome.log"
 #     shell:
@@ -114,8 +110,6 @@ rule get_SNPs_mapping_to_SNP_refined_panel:
 #     threads: 1
 #     resources:
 #         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-#     conda:
-#         "../envs/global.yaml"
 #     log:
 #         "logs/get_nb_unique_coordinate_SNPs_from_all_genomes.log"
 #     shell:
