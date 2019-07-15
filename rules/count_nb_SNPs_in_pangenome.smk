@@ -8,7 +8,7 @@ rule run_dnadiff:
         all_delta_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_delta_files_done"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
     log:
         "logs/{genome_1}_run_dnadiff.log"
     run:
@@ -28,7 +28,7 @@ rule run_show_snps:
         probe_length = config["probe_length"] #TODO: vary several probe lengths?
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
     log:
         "logs/{genome_1}_run_show_snps.log"
     run:
@@ -160,7 +160,7 @@ rule refine_clusters_and_output_SNP_refined_panel:
     log:
         "logs/refine_clusters_and_output_SNP_refined_panel.log"
     shell:
-         "python scripts/refine_clusters_and_output_a_representative.py {input} {params.SNP_panel} > {output}"
+         "python scripts/refine_clusters_and_output_a_representative.py {input} {params.SNP_panel} {output}"
 
 rule index_refined_panel:
     input:

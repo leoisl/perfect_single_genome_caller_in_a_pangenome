@@ -88,7 +88,9 @@ for cluster_leader, cluster_group in refined_clusters.items():
     for cluster_candidate in cluster_group:
         G.add_edge(cluster_leader.id, cluster_candidate.id)
 
-for component in nx.connected_components(G):
-    max_degree_of_nodes_in_this_component = max([G.degree(node) for node in component])
-    nodes_with_max_degree = [node for node in component if G.degree(node) == max_degree_of_nodes_in_this_component]
-    print(all_SNPs[nodes_with_max_degree[0]])
+with open(sys.argv[3], "w") as refined_clusters_file, open(f"{sys.argv[3]}.refined_clusters.debug", "w") as refined_clusters_debug_file:
+    for component in nx.connected_components(G):
+        max_degree_of_nodes_in_this_component = max([G.degree(node) for node in component])
+        print(f"{len(component)}", file=refined_clusters_debug_file)
+        nodes_with_max_degree = [node for node in component if G.degree(node) == max_degree_of_nodes_in_this_component]
+        print(all_SNPs[nodes_with_max_degree[0]], file=refined_clusters_file)
