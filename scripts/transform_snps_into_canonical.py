@@ -1,8 +1,5 @@
 import sys
-from Bio.Seq import Seq
-
-def rev_comp(s):
-    return str(Seq(s).reverse_complement())
+from utils import rev_comp
 
 def canonical_snp(snp_1, snp_2):
     snp_1_RC = rev_comp(snp_1)

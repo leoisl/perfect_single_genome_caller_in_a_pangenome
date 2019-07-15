@@ -1,4 +1,12 @@
 from pathlib import Path
+from Bio.Seq import Seq
+from Bio import pairwise2
+
+def rev_comp(s):
+    return str(Seq(s).reverse_complement())
+
+def similarity(s1, s2):
+    return pairwise2.align.globalxx(s1, s2)[0][2]
 
 SEPARATOR = "-SEP-"
 
