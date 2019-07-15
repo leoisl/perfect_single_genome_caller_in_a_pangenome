@@ -58,7 +58,7 @@ rule count_nb_SNPs_in_each_genome:
     log:
         "logs/count_nb_SNPs_in_each_genome.log"
     shell:
-        "bash scripts/get_nb_SNPs_in_each_genome.sh {input} > {output} 2> log"
+        "bash scripts/get_nb_SNPs_in_each_genome.sh {input} > {output} 2> {log}"
 
 
 
@@ -79,7 +79,7 @@ rule count_nb_SNPs_in_each_genome:
 #     log:
 #         "logs/{genome_1}_{genome_2}transform_SNPs_into_coordinate_SNPs.log"
 #     shell:
-#         "awk '{{print $1, $2, $3}}' {input} | sort | uniq > {output} 2> log"
+#         "awk '{{print $1, $2, $3}}' {input} | sort | uniq > {output} 2> {log}"
 #
 #
 # rule get_all_unique_coordinate_SNPs_from_a_genome:
@@ -93,7 +93,7 @@ rule count_nb_SNPs_in_each_genome:
 #     log:
 #         "logs/{genome_1}_get_all_unique_coordinate_SNPs_from_a_genome.log"
 #     shell:
-#         "sort {input} --parallel={threads} | uniq > {output} 2> log"
+#         "sort {input} --parallel={threads} | uniq > {output} 2> {log}"
 #
 # rule get_nb_unique_coordinate_SNPs_from_all_genomes:
 #     input:
@@ -106,4 +106,4 @@ rule count_nb_SNPs_in_each_genome:
 #     log:
 #         "logs/get_nb_unique_coordinate_SNPs_from_all_genomes.log"
 #     shell:
-#         "bash scripts/get_nb_unique_coordinate_SNPs_from_all_genomes.sh {input} > {output} 2> log"
+#         "bash scripts/get_nb_unique_coordinate_SNPs_from_all_genomes.sh {input} > {output} 2> {log}"

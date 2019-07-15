@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 rule run_dnadiff:
     input:
@@ -17,7 +16,7 @@ rule run_dnadiff:
             out_dir = Path(config['output_folder']) / wildcards.genome_1
             os.makedirs(out_dir, exist_ok=True)
             prefix = f"{out_dir / wildcards.genome_1}{SEPARATOR}{genome_name}"
-            subprocess.check_output(f"dnadiff {input.ref_genome} {genome_path} -p {prefix} ", shell=True)
+            shell(f"dnadiff {input.ref_genome} {genome_path} -p {prefix} ")
         with open(output.all_delta_files_done_flag_file, "w") as fout: pass
 
 rule run_show_snps:
@@ -39,7 +38,7 @@ rule run_show_snps:
             prefix = f"{out_dir / wildcards.genome_1}{SEPARATOR}{genome_name}"
             delta_file = f"{prefix}.delta"
             show_snps_file = f"{prefix}.show_snps"
-            subprocess.check_output(f"show-snps -C -H -I -r -T -x {params.probe_length} {delta_file} > {show_snps_file}", shell=True)
+            shell(f"show-snps -C -H -I -r -T -x {params.probe_length} {delta_file} > {show_snps_file}")
         with open(output.all_snp_probes_files_done_flag_file, "w") as fout: pass
 
 
@@ -61,7 +60,7 @@ rule transform_SNPs_into_canonical_SNPs:
             prefix = f"{out_dir / wildcards.genome_1}{SEPARATOR}{genome_name}"
             show_snps_file = f"{prefix}.show_snps"
             canonical_snps_file = f"{prefix}.canonical_snps"
-            subprocess.check_output(f"python scripts/transform_snps_into_canonical.py < {show_snps_file} > {canonical_snps_file}", shell=True)
+            shell(f"python scripts/transform_snps_into_canonical.py < {show_snps_file} > {canonical_snps_file}")
         with open(output.all_canonical_snps_files_done_flag_file, "w") as fout: pass
 
 
