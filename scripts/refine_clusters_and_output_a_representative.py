@@ -7,11 +7,11 @@ import networkx as nx
 ###################################################################
 #RC function
 def RC_base (base):
-    assert base in ["A", "C", "G", "T"]
     if base=="A": return "T"
-    if base == "T": return "A"
-    if base == "C": return "G"
-    if base == "G": return "C"
+    elif base == "T": return "A"
+    elif base == "C": return "G"
+    elif base == "G": return "C"
+    else: return base
 
 
 #class that will represent all versions of a canonical SNP
