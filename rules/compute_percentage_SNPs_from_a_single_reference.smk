@@ -22,34 +22,43 @@ rule build_SNP_panel_fasta_file_for_a_single_genome:
 
 
 
-#run bwa mem to get which SNPs fraom SNP_refined_panel.fa we can find with this genome
+#run bwa mem to get which SNPs from SNP_refined_panel.fa we can find with this genome
 rule get_SNPs_mapping_to_SNP_refined_panel:
     input:
         SNP_panel_fasta_file_for_a_single_genome = Path(config["output_folder"]) / "{genome_1}.SNP_panel.fa",
-        Path(config["output_folder"]) / "SNP_refined_panel.fa.amb",
-        Path(config["output_folder"]) / "SNP_refined_panel.fa.ann",
-        Path(config["output_folder"]) / "SNP_refined_panel.fa.bwt",
-        Path(config["output_folder"]) / "SNP_refined_panel.fa.pac",
-        Path(config["output_folder"]) / "SNP_refined_panel.fa.sa"
+        SNP_refined_panel = Path(config["output_folder"]) / "SNP_refined_panel.fa",
+        amb_file = Path(config["output_folder"]) / "SNP_refined_panel.fa.amb",
+        ann_file = Path(config["output_folder"]) / "SNP_refined_panel.fa.ann",
+        bwt_file = Path(config["output_folder"]) / "SNP_refined_panel.fa.bwt",
+        pac_file = Path(config["output_folder"]) / "SNP_refined_panel.fa.pac",
+        sa_file = Path(config["output_folder"]) / "SNP_refined_panel.fa.sa"
     output:
         SNPs_found_in_the_pangenome_if_ref_is_this_genome = Path(config["output_folder"]) / "SNPs_found_in_the_pangenome_if_ref_is_{genome_1}",
-    params:
-        minimum_score_to_output = int((float(config["probe_length"])*2+1) * float(config["proportion_of_match_in_probes_to_say_SNPs_are_the_same"])),
-        bwa_mem_output = Path(config["output_folder"]) / "bwa_mem_output.sam"
     threads: 16
     resources:
         mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
     log:
-        "logs/get_unrefined_clusters_using_bwa_mem.log"
+        "logs/{genome_1}_get_SNPs_mapping_to_SNP_refined_panel.log"
     shell:
         """
-        bwa index {input} &&
-        bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} -a -o {params.bwa_mem_output} {input} {input} &&
-        grep -v '^@' {params.bwa_mem_output} | awk '{{print $1, $3}}' | awk -F '_' '{{print $2, $5}}' | sort | uniq > {output}
+        bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 {input.SNP_refined_panel} {input.SNP_panel_fasta_file_for_a_single_genome} |
+        grep -v '^@' | awk '{{print $3}}' | awk -F '_' '{{if($2 ~  /^[0-9]+$/)print $2}}' | sort | uniq > {output}
         """
 
 
 
+rule count_nb_SNPs_in_each_genome:
+    input:
+        SNPs_found_in_the_pangenome_if_ref_is_this_genome = expand(str(Path(config["output_folder"]) / "SNPs_found_in_the_pangenome_if_ref_is_{genomes}"), genomes=genomes_names)
+    output:
+        nb_SNPs_in_this_genome = Path(config["output_folder"]) / "nb_SNPs_in_each_genome",
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    log:
+        "logs/count_nb_SNPs_in_each_genome.log"
+    shell:
+        "bash scripts/get_nb_SNPs_in_each_genome.sh {input} > {output} 2> log"
 
 
 
