@@ -9,7 +9,7 @@ rule run_dnadiff:
         all_delta_files_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_delta_files_done"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
     log:
         "logs/{genome_1}_run_dnadiff.log"
     run:
@@ -29,7 +29,7 @@ rule run_show_snps:
         probe_length = config["probe_length"] #TODO: vary several probe lengths?
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
     log:
         "logs/{genome_1}_run_show_snps.log"
     run:
