@@ -78,7 +78,7 @@ rule get_unique_canonical_SNPs_for_a_single_genome:
     log:
         "logs/{genome_1}_get_unique_canonical_SNPs_for_a_single_genome.log"
     shell:
-        "sort {params.all_canonical_snps} --parallel={threads} | uniq > {output} 2> log"
+        "sort {params.all_canonical_snps} --parallel={threads} | uniq > {output} 2> {log}"
 
 
 
@@ -93,7 +93,7 @@ rule get_unique_canonical_SNPs_from_the_pangenome:
     log:
         "logs/get_unique_canonical_SNPs.log"
     shell:
-        "sort {input} --parallel={threads} | uniq > {output} 2> log"
+        "sort {input} --parallel={threads} | uniq > {output} 2> {log}"
 
 #transforms all_unique_canonical_snps in a SNP panel fasta file
 rule build_SNP_panel_fasta_file:
