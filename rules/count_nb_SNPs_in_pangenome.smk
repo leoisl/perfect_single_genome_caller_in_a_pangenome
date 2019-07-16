@@ -77,7 +77,7 @@ rule get_unique_canonical_SNPs_for_a_single_genome:
     log:
         "logs/{genome_1}_get_unique_canonical_SNPs_for_a_single_genome.log"
     shell:
-        "sort {params.all_canonical_snps} --parallel={threads} | uniq > {output} 2> {log}"
+        "sort -u {params.all_canonical_snps} --parallel={threads} > {output} 2> {log}"
 
 
 
@@ -92,7 +92,7 @@ rule get_unique_canonical_SNPs_from_the_pangenome:
     log:
         "logs/get_unique_canonical_SNPs.log"
     shell:
-        "sort {input} --parallel={threads} | uniq > {output} 2> {log}"
+        "sort -m -u {input} --parallel={threads} > {output} 2> {log}"
 
 #transforms all_unique_canonical_snps in a SNP panel fasta file
 rule build_SNP_panel_fasta_file:
@@ -132,7 +132,7 @@ rule get_unrefined_clusters_using_bwa_mem:
         """
         bwa index {input} &&
         bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} -a {input} {input} |
-        grep -v '^@' | awk '{{print $1, $3}}' | awk -F '_' '{{print $2, $5}}' | sort | uniq > {output}
+        grep -v '^@' | awk '{{print $1, $3}}' | awk -F '_' '{{print $2, $5}}' | sort -u > {output}
         """
 
 # refine clusters:

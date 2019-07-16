@@ -44,7 +44,7 @@ rule get_SNPs_mapping_to_SNP_refined_panel:
     shell:
         """
         bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} {input.SNP_refined_panel} {input.SNP_panel_fasta_file_for_a_single_genome} |
-        grep -v '^@' | awk '{{print $3}}' | awk -F '_' '{{if($2 ~  /^[0-9]+$/)print $2}}' | sort | uniq > {output}
+        grep -v '^@' | awk '{{print $3}}' | awk -F '_' '{{if($2 ~  /^[0-9]+$/)print $2}}' | sort -u > {output}
         """
 
 
@@ -62,50 +62,3 @@ rule count_nb_SNPs_in_each_genome:
     shell:
         "bash scripts/get_nb_SNPs_in_each_genome.sh {input} > {output} 2> {log}"
 
-
-
-
-
-
-
-#previous rules
-#
-# rule transform_SNPs_into_coordinate_SNPs:
-#     input:
-#         show_snps = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.show_snps"
-#     output:
-#         pos_and_base_change = Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genome_2}}.pos_and_base_change"
-#     threads: 1
-#     resources:
-#         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-#     log:
-#         "logs/{genome_1}_{genome_2}transform_SNPs_into_coordinate_SNPs.log"
-#     shell:
-#         "awk '{{print $1, $2, $3}}' {input} | sort | uniq > {output} 2> {log}"
-#
-#
-# rule get_all_unique_coordinate_SNPs_from_a_genome:
-#     input:
-#         pos_and_base_change_from_a_genome = lambda wildcard: expand( str(Path(config["output_folder"]) / f"{{genome_1}}{SEPARATOR}{{genomes_2}}.pos_and_base_change"), genome_1 = wildcard.genome_1, genomes_2 = genomes_names)
-#     output:
-#         all_coordinate_SNPs_from_a_genome = Path(config["output_folder"]) / f"{{genome_1}}.all_coordinate_SNPs_from_a_genome"
-#     threads: 16
-#     resources:
-#         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-#     log:
-#         "logs/{genome_1}_get_all_unique_coordinate_SNPs_from_a_genome.log"
-#     shell:
-#         "sort {input} --parallel={threads} | uniq > {output} 2> {log}"
-#
-# rule get_nb_unique_coordinate_SNPs_from_all_genomes:
-#     input:
-#         all_coordinate_SNPs_from_a_genome = expand(str(Path(config["output_folder"]) / f"{{genome}}.all_coordinate_SNPs_from_a_genome"), genome=genomes_names)
-#     output:
-#         nb_coordinate_SNPs_from_all_genomes = Path(config["output_folder"]) / "nb_coordinate_SNPs_from_all_genomes"
-#     threads: 1
-#     resources:
-#         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-#     log:
-#         "logs/get_nb_unique_coordinate_SNPs_from_all_genomes.log"
-#     shell:
-#         "bash scripts/get_nb_unique_coordinate_SNPs_from_all_genomes.sh {input} > {output} 2> {log}"

@@ -1,5 +1,5 @@
-input_folder: 10_genomes
-output_folder: 10_genomes_out
+input_folder: assemblies_sample
+output_folder: assemblies_sample_out
 probe_length: 21
 proportion_of_match_in_probes_to_say_SNPs_are_the_same: 0.95
 mem_mb:
@@ -7,6 +7,6 @@ mem_mb:
   - 5000
   - 10000
 mem_mb_heavy_jobs:
-  - 10000
   - 25000
   - 50000
+  - 75000
