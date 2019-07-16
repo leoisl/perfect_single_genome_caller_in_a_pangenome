@@ -92,7 +92,7 @@ rule get_unique_canonical_SNPs_from_the_pangenome:
     log:
         "logs/get_unique_canonical_SNPs.log"
     shell:
-        "sort -m -u {input} --parallel={threads} -T tmp_sort_dir > {output} 2> {log}"
+        "mkdir -p tmp_sort_dir && sort -m -u {input} --parallel={threads} -T tmp_sort_dir > {output} 2> {log}"
 
 #transforms all_unique_canonical_snps in a SNP panel fasta file
 rule build_SNP_panel_fasta_file:
