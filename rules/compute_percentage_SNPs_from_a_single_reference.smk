@@ -33,7 +33,8 @@ rule get_SNPs_mapping_to_SNP_refined_panel:
         pac_file = Path(config["output_folder"]) / "SNP_refined_panel.fa.pac",
         sa_file = Path(config["output_folder"]) / "SNP_refined_panel.fa.sa"
     output:
-        SNPs_found_in_the_pangenome_if_ref_is_this_genome = Path(config["output_folder"]) / "SNPs_found_in_the_pangenome_if_ref_is_{genome_1}"
+        SNPs_found_in_the_pangenome_if_ref_is_this_genome = Path(config["output_folder"]) / "SNPs_found_in_the_pangenome_if_ref_is_{genome_1}",
+        bwa_mem_output = Path(config["output_folder"]) / "{genome_1}_bwa_mem_output.sam"
     params:
         minimum_score_to_output = int((float(config["probe_length"])*2+1) * float(config["proportion_of_match_in_probes_to_say_SNPs_are_the_same"]))
     threads: 16
@@ -43,8 +44,8 @@ rule get_SNPs_mapping_to_SNP_refined_panel:
         "logs/{genome_1}_get_SNPs_mapping_to_SNP_refined_panel.log"
     shell:
         """
-        bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} {input.SNP_refined_panel} {input.SNP_panel_fasta_file_for_a_single_genome} |
-        grep -v '^@' | awk '{{print $3}}' | awk -F '_' '{{if($2 ~  /^[0-9]+$/)print $2}}' | sort -u > {output}
+        bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} {input.SNP_refined_panel} {input.SNP_panel_fasta_file_for_a_single_genome} > {output.bwa_mem_output} |
+        grep -v '^@' {output.bwa_mem_output} | awk '{{print $3}}' | awk -F '_' '{{if($2 ~  /^[0-9]+$/)print $2}}' | sort -u > {output}
         """
 
 

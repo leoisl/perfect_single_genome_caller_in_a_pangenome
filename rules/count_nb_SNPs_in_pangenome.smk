@@ -1,5 +1,72 @@
 import os
+from pandora1_paper.evaluate.evaluation import *
+from SNP_handling.Positioned_SNPs import PositionedSNPs
+import itertools
 
+rule get_SNPs_using_mummer:
+    input:
+        ref_genome = Path(config["input_folder"]) / "{genome_1}.fna",
+        all_other_genomes = expand( str(Path(config["input_folder"]) / "{genomes_2}.fna"), genomes_2 = genomes_names)
+    output:
+        all_SNPs_from_mummer_done_flag_file = Path(config["output_folder"]) / f"{{genome_1}}.all_SNPs_from_mummer.done"
+    params:
+        probe_length = config["probe_length"] #TODO: vary several probe lengths?
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    log:
+        "logs/{genome_1}_get_SNPs_using_mummer.log"
+    run:
+        for genome_path, genome_name in zip(genomes, genomes_names):
+            if wildcards.genome_1 < genome_name:
+                out_dir = Path(config['output_folder']) / wildcards.genome_1
+                os.makedirs(out_dir, exist_ok=True)
+                prefix = f"{out_dir / wildcards.genome_1}{SEPARATOR}{genome_name}.mummer"
+                snps_as_StringIO = generate_mummer_snps(reference=Path(input.ref_genome), query=Path(genome_path), prefix=Path(prefix), flank_width=params.probe_length)
+                snps_dataframe = ShowSnps.to_dataframe(snps_as_StringIO)
+                snps_dataframe = snps_dataframe.translate_to_FWD_strand()
+                snps_dataframe.to_csv(prefix+".csv", sep="\t")
+        shell("touch {output.all_SNPs_from_mummer_done_flag_file}")
+
+rule output_SNP_clusters:
+    input:
+        all_snp_probes_files_done_flag_file = expand( str(Path(config["output_folder"]) / f"{{genomes}}.all_SNPs_from_mummer.done"), genomes = genomes_names)
+    output:
+        SNP_clusters = Path(config["output_folder"]) / "SNP_clusters"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    log:
+        "logs/output_SNP_clusters"
+    run:
+        positionedSNPs = PositionedSNPs()
+        for genome_name_1, genome_name_2 in itertools.product(genomes_names, genomes_names):
+            if genome_name_1 < genome_name_2:
+                out_dir = Path(config['output_folder']) / genome_name_1
+                prefix = f"{out_dir / genome_name_1}{SEPARATOR}{genome_name_2}.mummer"
+                #print(f"positionedSNPs.add_SNPs_from_csv('{prefix}.csv', '{genome_name_1}', '{genome_name_2}')")
+                positionedSNPs.add_SNPs_from_csv(prefix+".csv", genome_name_1, genome_name_2)
+        positionedSNPs.serialize(output.SNP_clusters)
+
+rule get_perfect_genotyper_recall:
+    input:
+        SNP_clusters = Path(config["output_folder"]) / "SNP_clusters"
+    output:
+        perfect_genotyper_recall = Path(config["output_folder"]) / "perfect_genotyper"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+    log:
+        "logs/get_perfect_genotyper_recall"
+    run:
+        positionedSNPs = PositionedSNPs.load(input.SNP_clusters)
+        genome_to_nb_SNPs = {"all": positionedSNPs.get_nb_SNPs_in_pangenome()}
+        for genome_name in genomes_names:
+            genome_to_nb_SNPs[genome_name] = positionedSNPs.get_nb_SNPs_that_can_be_found_with_a_given_genome(genome_name)
+        with open(output.perfect_genotyper_recall, "w") as fout:
+            print(genome_to_nb_SNPs, file=fout)
+
+'''
 rule run_dnadiff:
     input:
         ref_genome = Path(config["input_folder"]) / "{genome_1}.fna",
@@ -16,8 +83,11 @@ rule run_dnadiff:
             out_dir = Path(config['output_folder']) / wildcards.genome_1
             os.makedirs(out_dir, exist_ok=True)
             prefix = f"{out_dir / wildcards.genome_1}{SEPARATOR}{genome_name}"
-            shell(f"dnadiff {input.ref_genome} {genome_path} -p {prefix} ")
-        with open(output.all_delta_files_done_flag_file, "w") as fout: pass
+
+
+
+            shell("dnadiff {input.ref_genome} {genome_path} -p {prefix} ")
+            shell("touch {output.all_delta_files_done_flag_file}")
 
 rule run_show_snps:
     input:
@@ -32,15 +102,15 @@ rule run_show_snps:
     log:
         "logs/{genome_1}_run_show_snps.log"
     run:
-        #output file header: [P1]    [SUB]   [SUB]   [P2]    [BUFF]  [DIST]  [CTX R] [CTX Q] [FRM]   [TAGS]
         for genome_path, genome_name in zip(genomes, genomes_names):
             out_dir = Path(config['output_folder']) / wildcards.genome_1
             prefix = f"{out_dir / wildcards.genome_1}{SEPARATOR}{genome_name}"
             delta_file = f"{prefix}.delta"
             show_snps_file = f"{prefix}.show_snps"
-            shell(f"show-snps -C -H -I -r -T -x {params.probe_length} {delta_file} > {show_snps_file}")
-        with open(output.all_snp_probes_files_done_flag_file, "w") as fout: pass
-
+            shell("show-snps -C -l -H -I -r -T -x {params.probe_length} {delta_file} > {show_snps_file}.tmp")
+            shell("python scripts/transform_show_snps_out.py {wildcards.genome_1} {genome_name} {show_snps_file}.tmp > {show_snps_file}")
+        shell("touch {output.all_snp_probes_files_done_flag_file}")
+'''
 
 #this is done so that SNPs that are the same are not represented duplicatedly
 rule transform_SNPs_into_canonical_SNPs:
@@ -77,7 +147,8 @@ rule get_unique_canonical_SNPs_for_a_single_genome:
     log:
         "logs/{genome_1}_get_unique_canonical_SNPs_for_a_single_genome.log"
     shell:
-        "sort -u {params.all_canonical_snps} --parallel={threads} > {output} 2> {log}"
+        #"sort -u {params.all_canonical_snps} --parallel={threads} > {output} 2> {log}"
+        "cat {params.all_canonical_snps} > {output} 2> {log}"
 
 
 
@@ -92,7 +163,8 @@ rule get_unique_canonical_SNPs_from_the_pangenome:
     log:
         "logs/get_unique_canonical_SNPs.log"
     shell:
-        "mkdir -p tmp_sort_dir && sort -m -u {input} --parallel={threads} -T tmp_sort_dir > {output} 2> {log}"
+        #"mkdir -p tmp_sort_dir && sort -m -u {input} --parallel={threads} -T tmp_sort_dir > {output} 2> {log}"
+        "cat {input} > {output} 2> {log}"
 
 #transforms all_unique_canonical_snps in a SNP panel fasta file
 rule build_SNP_panel_fasta_file:
@@ -120,7 +192,8 @@ rule get_unrefined_clusters_using_bwa_mem:
     input:
         SNP_panel_fasta_file = Path(config["output_folder"]) / "SNP_panel.fa"
     output:
-        unrefined_clusters = Path(config["output_folder"]) / "unrefined_clusters"
+        unrefined_clusters = Path(config["output_folder"]) / "unrefined_clusters",
+        bwa_mem_output = Path(config["output_folder"]) / "SNP_panel_bwa_mem_output.sam"
     params:
         minimum_score_to_output = int((float(config["probe_length"])*2+1) * float(config["proportion_of_match_in_probes_to_say_SNPs_are_the_same"])),
     threads: 16
@@ -131,8 +204,8 @@ rule get_unrefined_clusters_using_bwa_mem:
     shell:
         """
         bwa index {input} &&
-        bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} -a {input} {input} |
-        grep -v '^@' | awk '{{print $1, $3}}' | awk -F '_' '{{print $2, $5}}' | sort -u > {output}
+        bwa mem -t {threads} -A 1 -B 0 -O [6,6] -E [1,1] -L [5,5] -U 0 -T {params.minimum_score_to_output} -a {input} {input} > {output.bwa_mem_output} &&
+        grep -v '^@' {output.bwa_mem_output} | awk '{{print $1, $3}}' | awk -F '_' '{{print $2, $5}}' | sort -u > {output}
         """
 
 # refine clusters:

@@ -1,0 +1,3 @@
+[submodule "pandora1_paper"]
+	path = pandora1_paper
+	url = git@github.com:leoisl/pandora1_paper.git

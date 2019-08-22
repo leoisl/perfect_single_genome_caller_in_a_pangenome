@@ -1,5 +1,14 @@
 from scripts.utils import *
+import logging
 
+# ======================================================
+# Logging
+# ======================================================
+logging.basicConfig(
+        level=logging.DEBUG,
+        format="[%(asctime)s]:%(levelname)s: %(message)s",
+        datefmt="%m/%d/%Y %I:%M:%S %p",
+)
 
 # ======================================================
 # Config files
@@ -13,7 +22,8 @@ genomes = get_all_genomes_files(config["input_folder"])
 genomes_names = get_all_genomes_names(genomes)
 
 rule all:
-    input: Path(config["output_folder"]) / "perfect_caller_sensitivity_in_pangenome.pdf"
+    #input: Path(config["output_folder"]) / "perfect_caller_sensitivity_in_pangenome.pdf"
+    input: Path(config["output_folder"]) / "perfect_genotyper"
 
 rules_dir = Path("rules/")
 include: str(rules_dir / "count_nb_SNPs_in_pangenome.smk")
