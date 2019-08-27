@@ -1,1 +1,0 @@
-wc -l "$@" | awk '{if($2 != "total"){print $2, $1}}' | sed 's/SNPs_found_in_the_pangenome_if_ref_is_//g'
