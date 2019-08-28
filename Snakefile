@@ -5,7 +5,7 @@ import logging
 # Logging
 # ======================================================
 logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="[%(asctime)s]:%(levelname)s: %(message)s",
         datefmt="%m/%d/%Y %I:%M:%S %p",
 )
@@ -14,17 +14,14 @@ logging.basicConfig(
 # Config files
 # ======================================================
 configfile: "config.yaml"
+genomes = get_all_genomes_files(config["input_folder"])
+genomes_names = get_all_genomes_names(genomes)
 
 # ======================================================
 # Rules
 # ======================================================
-genomes = get_all_genomes_files(config["input_folder"])
-genomes_names = get_all_genomes_names(genomes)
-
 rules_dir = Path("rules/")
 include: str(rules_dir / "core.smk")
 
 rule all:
     input: rules.generate_plot.output
-
-
