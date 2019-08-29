@@ -1,0 +1,5 @@
+/home/leandro/git/perfect_single_genome_caller_in_a_pangenome/10_random_genomes/random_genome.fna /home/leandro/git/perfect_single_genome_caller_in_a_pangenome/10_random_genomes/random_genome.mutation_3.fna
+NUCMER
+>random_original_genome mutated_genome_3 200000 22222
+66667 88888 1 22222 125 125 0
+0
