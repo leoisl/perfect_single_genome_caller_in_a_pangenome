@@ -1,12 +1,12 @@
 input_folder: 10_random_genomes
-output_folder: 10_random_genomes_out
-probe_length: 21
-proportion_of_match_in_probes_to_say_SNPs_are_the_same: 0.95
+output_folder: 10_random_genomes_out_container_test
 mem_mb:
   - 1000
   - 2000
   - 3000
-mem_mb_heavy_jobs:
-  - 1000
-  - 2000
-  - 3000
+singularity_image: singularity/leoisl-perfect_single_genome_caller_in_a_pangenome.sif
+logging_level: INFO
+
+# do we need these configs?
+probe_length: 21
+proportion_of_match_in_probes_to_say_SNPs_are_the_same: 0.95

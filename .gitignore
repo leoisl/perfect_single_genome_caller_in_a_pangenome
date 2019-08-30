@@ -8,3 +8,5 @@ get_proportion_unique_kmers_in_a_genome/dsk/
 assemblies_sample*
 10_genomes*
 
+
+singularity/leoisl-perfect_single_genome_caller_in_a_pangenome\.sif

@@ -2,6 +2,9 @@ Bootstrap: debootstrap
 OSVersion: bionic
 MirrorURL: http://mirrors.ukfast.co.uk/sites/archive.ubuntu.com/
 
+%help
+Contains all the dependencies to run https://github.com/leoisl/perfect_single_genome_caller_in_a_pangenome
+
 %environment
   PATH=/usr/local/bin:$PATH
 
@@ -18,5 +21,6 @@ MirrorURL: http://mirrors.ukfast.co.uk/sites/archive.ubuntu.com/
     apt-get update
     apt-get install -y python3 bwa mummer python3-pip zlib1g-dev git wget build-essential libbz2-dev liblzma-dev r-base
     pip3 install snakemake networkx biopython pysam pandas
-    cd /perfect_single_genome_caller_in_a_pangenome
-    Rscript scripts/install.R
+    wget https://raw.githubusercontent.com/leoisl/perfect_single_genome_caller_in_a_pangenome/using_pos_instead_of_probes/scripts/install.R
+    Rscript install.R
+    ln -s /usr/bin/python3 /usr/bin/python
