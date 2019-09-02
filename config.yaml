@@ -4,6 +4,10 @@ mem_mb:
   - 1000
   - 2000
   - 3000
+mem_mb_heavy_jobs:
+  - 50000
+  - 75000
+  - 110000
 singularity_image: singularity/leoisl-perfect_single_genome_caller_in_a_pangenome.sif
 logging_level: INFO
 

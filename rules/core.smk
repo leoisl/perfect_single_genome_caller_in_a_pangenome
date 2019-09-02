@@ -43,7 +43,7 @@ rule output_SNP_clusters:
         SNP_clusters = Path(config["output_folder"]) / "SNP_clusters"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
+        mem_mb = lambda wildcards, attempt: config["mem_mb_heavy_jobs"][attempt-1]
     params:
         genomes = genomes,
         genomes_names = genomes_names
