@@ -1,5 +1,0 @@
-/home/leandro/git/perfect_single_genome_caller_in_a_pangenome/10_random_genomes/random_genome.fna /home/leandro/git/perfect_single_genome_caller_in_a_pangenome/10_random_genomes/random_genome.mutation_7.fna
-NUCMER
->random_original_genome mutated_genome_7 200000 22222
-155555 177776 1 22222 10 10 0
-0

@@ -10,3 +10,7 @@ assemblies_sample*
 
 
 singularity/leoisl-perfect_single_genome_caller_in_a_pangenome\.sif
+
+perfect_caller_sensitivity_in_pangenome\.violin\.pdf
+
+perfect_genotyper\.dataframe
