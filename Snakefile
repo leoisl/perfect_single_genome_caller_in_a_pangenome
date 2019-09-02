@@ -21,8 +21,9 @@ logging.basicConfig(
 # ======================================================
 # Getting genomes to be processed
 # ======================================================
-genomes = get_all_genomes_files(config["input_folder"])
-genomes_names = get_all_genomes_names(genomes)
+species_to_genomes = get_all_genomes_files(config["input_folders"])
+species_to_output_folder = get_all_output_folders(config["input_folders"])
+species_to_genomes_names = get_all_genomes_names(species_to_genomes)
 
 
 # ======================================================
@@ -36,4 +37,5 @@ include: str(rules_dir / "core.smk")
 # Running all rules
 # ======================================================
 rule all:
-    input: rules.generate_plot.output
+    input:
+         rules.generate_violin_plot.output.plot

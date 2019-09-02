@@ -5,8 +5,8 @@ positionedSNPsIndex = PositionedSNPsIndex.load(snakemake.input.SNP_clusters)
 genomes_to_nb_of_SNPs = positionedSNPsIndex.get_nb_SNPs_that_can_be_found_with_the_given_genomes(snakemake.params.genomes_names)
 nb_SNPs_in_pangenome = genomes_to_nb_of_SNPs["all"]
 
-df = pd.DataFrame(columns=["genome_index", "sensitivity"])
+df = pd.DataFrame(columns=["genome_index", "sensitivity", "dataset"])
 for index, genome_name in enumerate(snakemake.params.genomes_names):
     nb_SNPs_in_genome = genomes_to_nb_of_SNPs[genome_name]
-    df.loc[index] = [index, nb_SNPs_in_genome / nb_SNPs_in_pangenome]
-df.to_csv(snakemake.output.perfect_genotyper_recall_df, sep="\t")
+    df.loc[index] = [index, nb_SNPs_in_genome / nb_SNPs_in_pangenome, snakemake.wildcards.input_folder]
+df.to_csv(snakemake.output.perfect_genotyper_recall_df, sep="\t", index=False)

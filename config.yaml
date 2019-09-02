@@ -1,13 +1,16 @@
-input_folder: 10_random_genomes
-output_folder: 10_random_genomes_out_container_test
+input_folders:
+  - 10_random_genomes
+  - 5_random_genomes_ecoli
+  - 5_random_genomes_saureus
+  - 5_random_genomes_paeru
 mem_mb:
   - 1000
   - 2000
   - 3000
 mem_mb_heavy_jobs:
-  - 50000
-  - 75000
-  - 110000
+  - 1000
+  - 2000
+  - 3000
 singularity_image: singularity/leoisl-perfect_single_genome_caller_in_a_pangenome.sif
 logging_level: INFO
 
