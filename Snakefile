@@ -38,4 +38,5 @@ include: str(rules_dir / "core.smk")
 # ======================================================
 rule all:
     input:
-         rules.generate_violin_plot.output.plot
+         rules.generate_violin_plot.output.plot,
+         expand(rules.generate_geom_line_plot.output.plot, input_folder = config["input_folders"])
