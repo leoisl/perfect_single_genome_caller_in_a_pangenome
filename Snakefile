@@ -1,21 +1,41 @@
 from scripts.utils import *
-
+import logging
 
 # ======================================================
 # Config files
 # ======================================================
 configfile: "config.yaml"
 
+
+# ======================================================
+# Logging
+# ======================================================
+logging_level = logging.getLevelName(config["logging_level"])
+logging.basicConfig(
+        level=logging_level,
+        format="[%(asctime)s]:%(levelname)s: %(message)s",
+        datefmt="%m/%d/%Y %I:%M:%S %p",
+)
+
+
+# ======================================================
+# Getting genomes to be processed
+# ======================================================
+species_to_genomes = get_all_genomes_files(config["input_folders"])
+species_to_output_folder = get_all_output_folders(config["input_folders"])
+species_to_genomes_names = get_all_genomes_names(species_to_genomes)
+
+
 # ======================================================
 # Rules
 # ======================================================
-genomes = get_all_genomes_files(config["input_folder"])
-genomes_names = get_all_genomes_names(genomes)
-
-rule all:
-    input: Path(config["output_folder"]) / "perfect_caller_sensitivity_in_pangenome.pdf"
-
 rules_dir = Path("rules/")
-include: str(rules_dir / "count_nb_SNPs_in_pangenome.smk")
-include: str(rules_dir / "compute_percentage_SNPs_from_a_single_reference.smk")
-include: str(rules_dir / "generate_plot.smk")
+include: str(rules_dir / "core.smk")
+
+
+# ======================================================
+# Running all rules
+# ======================================================
+rule all:
+    input:
+         rules.generate_violin_plot.output.plot

@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-snakemake -n -p --cores 4
+snakemake --use-singularity --verbose -p --cores 4 -n
 exit 0
